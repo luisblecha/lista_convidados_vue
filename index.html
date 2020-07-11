@@ -47,10 +47,39 @@
 
                         <b-col cols="12" md="6" lg="4">
                             <b-form-group label="CEP" label-for="cep">
-                                <b-form-input v-mask="'##.###-###'" id="cep" v-model="convidado.endereco.cep"
+                                <b-form-input @keyup="buscarCep" v-mask="'##.###-###'" id="cep" v-model="convidado.endereco.cep"
                                     type="text" placeholder="Ex: 79060231" required></b-form-input>
                             </b-form-group>
                         </b-col>
+
+                        <b-col cols="12" md="6" lg="4">
+                            <b-form-group label="Logradouro" label-for="logradouro">
+                                <b-form-input id="logradouro" v-model="convidado.endereco.logradouro" type="text"
+                                    placeholder="Ex: Rua dos Bobos"></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col cols="12" md="6" lg="4">
+                            <b-form-group label="Bairro" label-for="bairro">
+                                <b-form-input id="bairro" v-model="convidado.endereco.bairro" type="text"
+                                    placeholder="Ex: Bairro dos Cafundó"></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col cols="12" md="6" lg="4">
+                            <b-form-group label="Cidade" label-for="cidade">
+                                <b-form-input id="cidade" v-model="convidado.endereco.cidade" type="text"
+                                    placeholder="Ex: Cidade do Nunca"></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col cols="12" md="6" lg="4">
+                            <b-form-group label="Estado" label-for="estado">
+                                <b-form-input id="estado" v-model="convidado.endereco.estado" type="text"
+                                    placeholder="Ex: Estado Neutro"></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
 
                     </b-row>
                     <b-row align-h="end">
@@ -197,7 +226,7 @@
 
                     // verificar se o email já está cadastrado (faz uma filtragem)
 
-                    let indice = this.convidados.findIndex((elemento)=>{
+                    let indice = this.convidados.findIndex((elemento) => {
                         return elemento.email === this.convidado.email
                     })
 
@@ -217,7 +246,7 @@
                         this.erros.push("O CEP é obrigatório")
                     }
 
-                    if(indice > -1){
+                    if (indice > -1) {
                         this.erros.push("Este convidado já foi cadastrado!")
                     }
                 },
@@ -225,6 +254,19 @@
                     this.listaConvidados = this.convidados.filter((elemento) => {
                         return elemento.nome.toLowerCase().includes(this.textoBusca.toLowerCase())
                     })
+                },
+
+                buscarCep(){
+                    if(this.convidado.endereco.cep.length === 10){
+
+                        fetch("https://viacep.com.br/ws/79036100/json").then((resposta)=>{
+                            resposta.json().then((resultado) => {
+                                console.log(resultado)
+                                this.convidado.endereco = resultado
+
+                            })
+                        })
+                    }
                 }
             }
         })
