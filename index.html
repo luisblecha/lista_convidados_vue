@@ -15,7 +15,7 @@
 
         <b-container>
 
-            <b-alert v-for="(erro, i) in erros" variant="danger" show>{{erro}}</b-alert>
+            <b-alert :key="i" v-for="(erro, i) in erros" variant="danger" show>{{erro}}</b-alert>
 
             <h1>{{titulo}}</h1>
 
@@ -47,8 +47,9 @@
 
                         <b-col cols="12" md="6" lg="4">
                             <b-form-group label="CEP" label-for="cep">
-                                <b-form-input @keyup="buscarCep" v-mask="'##.###-###'" id="cep" v-model="convidado.endereco.cep"
-                                    type="text" placeholder="Ex: 79060231" required></b-form-input>
+                                <b-form-input @keyup="buscarCep" v-mask="'##.###-###'" id="cep"
+                                    v-model="convidado.endereco.cep" type="text" placeholder="Ex: 79060231" required>
+                                </b-form-input>
                             </b-form-group>
                         </b-col>
 
@@ -62,7 +63,7 @@
                         <b-col cols="12" md="6" lg="4">
                             <b-form-group label="Bairro" label-for="bairro">
                                 <b-form-input id="bairro" v-model="convidado.endereco.bairro" type="text"
-                                    placeholder="Ex: Bairro dos Cafundó"></b-form-input>
+                                    placeholder="Ex: Baixo dos Cafundó"></b-form-input>
                             </b-form-group>
                         </b-col>
 
@@ -80,6 +81,12 @@
                             </b-form-group>
                         </b-col>
 
+                        <b-col cols="12" md="6" lg="4">
+                            <b-form-group label="Número Residencial" label-for="numero">
+                                <b-form-input id="numbero" v-model="convidado.endereco.numero" type="number"
+                                    placeholder="Ex: 0"></b-form-input>
+                            </b-form-group>
+                        </b-col>
 
                     </b-row>
                     <b-row align-h="end">
@@ -92,9 +99,7 @@
                     </b-row>
                 </form>
             </b-card>
-
             <b-card>
-
                 <b-row>
                     <b-col cols="12" md="6">
                         <b-form-group>
@@ -208,7 +213,7 @@
                     this.indiceEdicao = index
                 },
                 remover() {
-                    //buscar o elemento no vetor convidados pelo e-mail
+                    // buscar o elemento no vetor `convidados` pelo email
                     let indice = this.convidados.findIndex((elemento) => {
                         return elemento.email === this.convidadoRemocao.email
                     })
@@ -224,8 +229,7 @@
 
                     this.erros = []
 
-                    // verificar se o email já está cadastrado (faz uma filtragem)
-
+                    // buscar convidado por email
                     let indice = this.convidados.findIndex((elemento) => {
                         return elemento.email === this.convidado.email
                     })
@@ -247,7 +251,7 @@
                     }
 
                     if (indice > -1) {
-                        this.erros.push("Este convidado já foi cadastrado!")
+                        this.erros.push("Este convidado já foi cadastrado")
                     }
                 },
                 buscar() {
@@ -255,17 +259,31 @@
                         return elemento.nome.toLowerCase().includes(this.textoBusca.toLowerCase())
                     })
                 },
+                async buscarCep() {
+                    if (this.convidado.endereco.cep.length === 10) {
+                        let cep = this.convidado.endereco.cep
+                        cep = cep.replace('.', '')
+                        cep = cep.replace('-', '')
+                        console.log('Vai chamar o fetch...')
 
-                buscarCep(){
-                    if(this.convidado.endereco.cep.length === 10){
+                        try {
+                            let resposta = await fetch(`https://viacep.com.br/ws/${cep}/json`)
+                            let resultado = await resposta.json()
+                            if (resultado.erro) throw { mensagemCliente: "CEP não reconhecido" }
+                            this.convidado.endereco = {
+                                cep: this.convidado.endereco.cep,
+                                numero: this.convidado.endereco.numero,
+                                logradouro: resultado.logradouro,
+                                bairro: resultado.bairro,
+                                cidade: resultado.localidade,
+                                estado: resultado.uf
+                            }
+                        } catch (erro) {
+                            console.log(erro)
+                            alert(erro.mensagemCliente || "Erro ao buscar endereço")
+                        }
 
-                        fetch("https://viacep.com.br/ws/79036100/json").then((resposta)=>{
-                            resposta.json().then((resultado) => {
-                                console.log(resultado)
-                                this.convidado.endereco = resultado
-
-                            })
-                        })
+                        console.log('Terminou a função')
                     }
                 }
             }
