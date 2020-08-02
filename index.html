@@ -138,7 +138,9 @@
     <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
     <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/v-mask/dist/v-mask.min.js"></script>
-    <script>
+    <script type="module">
+
+        import EnderecoService from "./services/endereco.service.js"
 
         Vue.use(VueMask.VueMaskPlugin) // Faz o atributo v-mask existir
 
@@ -150,7 +152,7 @@
                 erros: [],
                 textoBusca: "",
                 exibirModalRemocao: false,
-                titulo: "Lista de Convidados",
+                titulo: "Lista de Convidados - Cadastro de Convidados",
                 indiceEdicao: -1,
                 convidadoRemocao: {},
                 convidados: [],
@@ -261,29 +263,16 @@
                 },
                 async buscarCep() {
                     if (this.convidado.endereco.cep.length === 10) {
-                        let cep = this.convidado.endereco.cep
-                        cep = cep.replace('.', '')
-                        cep = cep.replace('-', '')
-                        console.log('Vai chamar o fetch...')
-
                         try {
-                            let resposta = await fetch(`https://viacep.com.br/ws/${cep}/json`)
-                            let resultado = await resposta.json()
-                            if (resultado.erro) throw { mensagemCliente: "CEP não reconhecido" }
-                            this.convidado.endereco = {
-                                cep: this.convidado.endereco.cep,
-                                numero: this.convidado.endereco.numero,
-                                logradouro: resultado.logradouro,
-                                bairro: resultado.bairro,
-                                cidade: resultado.localidade,
-                                estado: resultado.uf
-                            }
+                            let resultado = await EnderecoService.buscarPorCep(this.convidado.endereco.cep)
+                            resultado.cep = this.convidado.endereco.cep
+                            resultado.numero = this.convidado.endereco.numero
+                            this.convidado.endereco = resultado
+                            console.log(resultado)
                         } catch (erro) {
-                            console.log(erro)
-                            alert(erro.mensagemCliente || "Erro ao buscar endereço")
+                            this.erros.push(erro.mensagemCliente)
+                            console.log(erro.message)
                         }
-
-                        console.log('Terminou a função')
                     }
                 }
             }
